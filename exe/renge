@@ -1,3 +1,44 @@
 #!/usr/bin/env ruby
 
-require "renge"
+require 'renge'
+require 'optparse'
+
+options = {}
+OptionParser.new do |opt|
+  opt.on('-l', '--list', 'Print all quotes list and exit.') {|v| options[:l] = v }
+  opt.on('-f', '--file PATH', 'Specifiles the dictionary.') {|v| options[:f] = v }
+  opt.on('-n', '--number INT', 'Specify quote number.') {|v| options[:n] = v.to_i }
+
+  begin
+    opt.parse!(ARGV)
+  rescue
+    STDERR.puts "#{$0}: invalid option"
+    exit 1
+  end
+end
+
+begin
+  renge = Renge::Character.new(options[:f] || Renge::GEM_ROOT + '/lib/renge-quotes')
+rescue
+  STDERR.puts "#{$0}: no such dictionary file"
+  exit 1
+end
+
+if options[:l]
+  renge.quotes.each_with_index {|quote, index|
+    puts "#{index} #{quote}"
+  }
+
+  exit 0
+end
+
+if options[:n]
+  begin
+    puts renge.say(options[:n])
+  rescue
+    STDERR.puts "#{$0}: invalid quote number"
+    exit 1
+  end
+else
+  puts renge.say
+end
